@@ -60,4 +60,3 @@ map.on("dblclick", function () {
 
 
 
-
