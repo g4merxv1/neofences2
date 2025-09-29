@@ -72,12 +72,14 @@ body {
 #overlay {
   position: absolute;
   top: 0;
-  left: 200px;
+  left: 200px; /* deixa espaço para o menu lateral */
   right: 0;
   bottom: 0;
-  background: rgba(0, 120, 200, 0.2);
-  backdrop-filter: blur(2px);
-  pointer-events: none;
+  background: rgba(0, 50, 100, 0.6); /* tom azul mais forte */
+  backdrop-filter: brightness(0.6);  /* escurece um pouco */
+  pointer-events: none; /* deixa o clique passar para o mapa */
   z-index: 500;
 }
+
+
 
