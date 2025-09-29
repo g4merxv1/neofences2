@@ -1,66 +1,63 @@
-let map, drawnItems, drawControl;
-let mostrarCercas = true;
+// Inicializa o mapa
+var map = L.map('map').setView([-15.7801, -47.9292], 4);
 
-window.onload = function() {
-  map = L.map("map").setView([-19.9, -43.9], 13);
+// Adiciona o mapa base
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy; OpenStreetMap contributors'
+}).addTo(map);
 
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 19
-  }).addTo(map);
+// Overlay de vidro azul
+var overlay = document.createElement("div");
+overlay.id = "overlay";
+document.body.appendChild(overlay);
 
-  drawnItems = new L.FeatureGroup();
-  map.addLayer(drawnItems);
+// Variáveis para edição de cercas
+let modoEdicaoCerca = false;
+let pontosCerca = [];
+let cercaAtual = null;
 
-  drawControl = new L.Control.Draw({
-    draw: {
-      polygon: false,
-      rectangle: false,
-      circle: false,
-      circlemarker: false,
-      marker: false,
-      polyline: { shapeOptions: { color: "yellow" } }
-    },
-    edit: {
-      featureGroup: drawnItems
+// Ativar/Desativar edição de cercas
+function ativarEdicaoCerca() {
+  modoEdicaoCerca = !modoEdicaoCerca;
+  pontosCerca = [];
+
+  if (cercaAtual) {
+    map.removeLayer(cercaAtual);
+    cercaAtual = null;
+  }
+
+  alert(modoEdicaoCerca ? "Modo de edição de cerca ATIVADO\nClique no mapa para adicionar pontos.\nClique duplo para fechar a cerca." 
+                        : "Modo de edição de cerca DESATIVADO");
+}
+
+// Clique no mapa para adicionar pontos da cerca
+map.on("click", function (e) {
+  if (!modoEdicaoCerca) return;
+
+  pontosCerca.push([e.latlng.lat, e.latlng.lng]);
+
+  // Se já existir uma cerca provisória, remove antes de desenhar de novo
+  if (cercaAtual) {
+    map.removeLayer(cercaAtual);
+  }
+
+  // Desenha polígono aberto (vai se fechando conforme adiciona pontos)
+  cercaAtual = L.polygon(pontosCerca, { color: "yellow", weight: 3, fillOpacity: 0.1 }).addTo(map);
+});
+
+// Duplo clique fecha o polígono
+map.on("dblclick", function () {
+  if (modoEdicaoCerca && pontosCerca.length > 2) {
+    if (cercaAtual) {
+      map.removeLayer(cercaAtual);
     }
-  });
-  map.addControl(drawControl);
-
-  map.on(L.Draw.Event.CREATED, function(event) {
-    let layer = event.layer;
-    drawnItems.addLayer(layer);
-  });
-};
-
-function visualizarMapa() {
-  map.removeControl(drawControl);
-}
-
-function editarArea() {
-  map.addControl(drawControl);
-}
-
-function editarAnimais() {
-  let lat = prompt("Latitude do animal:");
-  let lng = prompt("Longitude do animal:");
-  if (lat && lng) {
-    L.marker([parseFloat(lat), parseFloat(lng)]).addTo(map).bindPopup("Animal");
+    cercaAtual = L.polygon(pontosCerca, { color: "yellow", weight: 3, fillOpacity: 0.3 }).addTo(map);
+    pontosCerca = [];
+    modoEdicaoCerca = false;
+    alert("Cerca finalizada!");
   }
-}
+});
 
-function abrirConfiguracoes() {
-  mostrarCercas = !mostrarCercas;
-  if (mostrarCercas) {
-    map.addLayer(drawnItems);
-    alert("Cercas visíveis");
-  } else {
-    map.removeLayer(drawnItems);
-    alert("Cercas ocultas");
-  }
-}
 
-function ativarNotificacoes() {
-  alert("🔔 Notificações ativadas (simulação)");
-}
 
 
