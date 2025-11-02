@@ -5,26 +5,41 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mapa com Cerca</title>
 
-  <!-- Estilos do Leaflet -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet/dist/leaflet.css"
-  />
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet-draw/dist/leaflet.draw.css"
-  />
+  <!-- Leaflet e Leaflet Draw -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-draw/dist/leaflet.draw.css" />
 
   <style>
     html, body {
       height: 100%;
       margin: 0;
-      background: #dce7f3; /* azul claro */
+      background: #b9d6f2; /* azul mais claro */
     }
     #map {
       height: 100vh;
       width: 100%;
-      filter: brightness(1.1) saturate(1.2);
+      background-color: #b9d6f2; /* fundo azul */
+      background-blend-mode: lighten;
+    }
+
+    /* Corrige botões tortos e desalinhados */
+    .leaflet-top.leaflet-left {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      margin-top: 10px;
+      margin-left: 10px;
+      gap: 6px;
+    }
+
+    .leaflet-draw-toolbar a {
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .leaflet-draw-toolbar a:hover {
+      background-color: #f0f0f0;
     }
   </style>
 </head>
@@ -40,25 +55,24 @@
     // Cria o mapa centralizado no Brasil
     const map = L.map('map').setView([-15.78, -47.93], 5);
 
-    // Mapa base com tom mais azul
-    const tiles = L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+    // Camada base com tom azul claro
+    L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
       maxZoom: 19,
       attribution: '© OpenStreetMap contributors',
-      opacity: 0.9
-    });
-    tiles.addTo(map);
+    }).addTo(map);
 
-    // Adiciona controle de desenho
+    // Grupo onde as cercas serão adicionadas
     const drawnItems = new L.FeatureGroup();
     map.addLayer(drawnItems);
 
+    // Controle de desenho
     const drawControl = new L.Control.Draw({
       draw: {
         polygon: {
           shapeOptions: {
             color: '#ffcc00',
             fillColor: '#fff300',
-            fillOpacity: 0.3
+            fillOpacity: 0.4
           },
           allowIntersection: false,
           showArea: true
@@ -75,11 +89,11 @@
     });
     map.addControl(drawControl);
 
-    // Evento ao desenhar a cerca
+    // Evento: quando a cerca é criada
     map.on(L.Draw.Event.CREATED, function (event) {
       const layer = event.layer;
       drawnItems.addLayer(layer);
-      alert('Cerca criada com sucesso!');
+      alert('✅ Cerca criada com sucesso!');
       console.log('Coordenadas da cerca:', layer.getLatLngs());
     });
   </script>
