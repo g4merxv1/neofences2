@@ -75,8 +75,8 @@ body {
   left: 200px; /* deixa espaço para o menu lateral */
   right: 0;
   bottom: 0;
-  background: rgba(0, 50, 100, 0.6); /* tom azul mais forte */
-  backdrop-filter: brightness(0.6);  /* escurece um pouco */
+  background: rgba(100, 180, 255, 0.35); /* azul mais claro e translúcido */
+  backdrop-filter: blur(3px) brightness(0.8); /* leve desfoque + tom mais claro */
   pointer-events: none; /* deixa o clique passar para o mapa */
   z-index: 500;
 }
