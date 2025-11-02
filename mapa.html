@@ -1,29 +1,87 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Mapa com Menu</title>
-  <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-draw/dist/leaflet.draw.css" />
-</head>
-<body>
-  <div id="sidebar">
-    <h2>Menu</h2>
-    <ul>
-      <li onclick="visualizarMapa()">👁 Visualizar</li>
-      <li onclick="ativarEdicaoCerca()">✏️ Editar área</li>
-      <li onclick="editarAnimais()">🐄 Editar animais</li>
-      <li onclick="abrirConfiguracoes()">⚙ Configurações</li>
-      <li onclick="ativarNotificacoes()">🔔 Notificações</li>
-    </ul>
-  </div>
-  <div id="map"></div>
-  <div id="overlay"></div>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mapa com Cerca</title>
 
+  <!-- Estilos do Leaflet -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet/dist/leaflet.css"
+  />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet-draw/dist/leaflet.draw.css"
+  />
+
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: #dce7f3; /* azul claro */
+    }
+    #map {
+      height: 100vh;
+      width: 100%;
+      filter: brightness(1.1) saturate(1.2);
+    }
+  </style>
+</head>
+
+<body>
+  <div id="map"></div>
+
+  <!-- Scripts -->
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet-draw/dist/leaflet.draw.js"></script>
-  <script src="app.js"></script>
+
+  <script>
+    // Cria o mapa centralizado no Brasil
+    const map = L.map('map').setView([-15.78, -47.93], 5);
+
+    // Mapa base com tom mais azul
+    const tiles = L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '© OpenStreetMap contributors',
+      opacity: 0.9
+    });
+    tiles.addTo(map);
+
+    // Adiciona controle de desenho
+    const drawnItems = new L.FeatureGroup();
+    map.addLayer(drawnItems);
+
+    const drawControl = new L.Control.Draw({
+      draw: {
+        polygon: {
+          shapeOptions: {
+            color: '#ffcc00',
+            fillColor: '#fff300',
+            fillOpacity: 0.3
+          },
+          allowIntersection: false,
+          showArea: true
+        },
+        polyline: false,
+        circle: false,
+        rectangle: false,
+        marker: false,
+        circlemarker: false
+      },
+      edit: {
+        featureGroup: drawnItems
+      }
+    });
+    map.addControl(drawControl);
+
+    // Evento ao desenhar a cerca
+    map.on(L.Draw.Event.CREATED, function (event) {
+      const layer = event.layer;
+      drawnItems.addLayer(layer);
+      alert('Cerca criada com sucesso!');
+      console.log('Coordenadas da cerca:', layer.getLatLngs());
+    });
+  </script>
 </body>
 </html>
-
