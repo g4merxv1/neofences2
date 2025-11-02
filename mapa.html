@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mapa com Cerca</title>
+  <title>Mapa com Cercas e Nomes</title>
 
   <!-- Leaflet e Leaflet Draw -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
@@ -13,16 +13,16 @@
     html, body {
       height: 100%;
       margin: 0;
-      background: #b9d6f2; /* azul mais claro */
+      background: #b9d6f2;
+      font-family: Arial, sans-serif;
     }
     #map {
       height: 100vh;
       width: 100%;
-      background-color: #b9d6f2; /* fundo azul */
-      background-blend-mode: lighten;
+      background-color: #b9d6f2;
     }
 
-    /* Corrige botões tortos e desalinhados */
+    /* Corrige e estiliza os botões */
     .leaflet-top.leaflet-left {
       display: flex;
       flex-direction: column;
@@ -41,6 +41,16 @@
     .leaflet-draw-toolbar a:hover {
       background-color: #f0f0f0;
     }
+
+    /* Estilo para o rótulo da cerca */
+    .polygon-label {
+      background-color: rgba(255, 255, 255, 0.7);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: bold;
+      color: #333;
+    }
   </style>
 </head>
 
@@ -52,10 +62,10 @@
   <script src="https://unpkg.com/leaflet-draw/dist/leaflet.draw.js"></script>
 
   <script>
-    // Cria o mapa centralizado no Brasil
+    // Inicializa o mapa
     const map = L.map('map').setView([-15.78, -47.93], 5);
 
-    // Camada base com tom azul claro
+    // Camada base (azul mais claro)
     L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
       maxZoom: 19,
       attribution: '© OpenStreetMap contributors',
@@ -89,13 +99,39 @@
     });
     map.addControl(drawControl);
 
-    // Evento: quando a cerca é criada
+    // Array para armazenar as cercas criadas
+    const cercas = [];
+
+    // Evento: quando uma cerca é criada
     map.on(L.Draw.Event.CREATED, function (event) {
       const layer = event.layer;
-      drawnItems.addLayer(layer);
-      alert('✅ Cerca criada com sucesso!');
-      console.log('Coordenadas da cerca:', layer.getLatLngs());
+
+      // Pede o nome da cerca
+      const nomeCerca = prompt("Digite um nome para esta cerca:");
+
+      if (nomeCerca && nomeCerca.trim() !== "") {
+        // Adiciona ao mapa
+        drawnItems.addLayer(layer);
+
+        // Salva os dados (nome + coordenadas)
+        const coordenadas = layer.getLatLngs()[0].map(coord => [coord.lat, coord.lng]);
+        cercas.push({ nome: nomeCerca, coordenadas });
+
+        // Cria um rótulo com o nome da cerca
+        const centro = layer.getBounds().getCenter();
+        const label = L.divIcon({
+          className: 'polygon-label',
+          html: nomeCerca
+        });
+        L.marker(centro, { icon: label, interactive: false }).addTo(map);
+
+        alert(`✅ Cerca "${nomeCerca}" criada com sucesso!`);
+        console.log("Cercas atuais:", cercas);
+      } else {
+        alert("⚠️ Cerca sem nome não foi salva.");
+      }
     });
   </script>
 </body>
 </html>
+
