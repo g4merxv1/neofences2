@@ -101,7 +101,14 @@
 
     // Array para armazenar as cercas criadas
     const cercas = [];
-
+    
+<div id="sidebar">
+  <h2>Meus Paddocks</h2>
+  <ul id="paddockList" class="paddock-list"></ul>
+  <button onclick="ativarEdicaoCerca()">Criar Nova Cerca</button>
+</div>
+<div id="map"></div>
+    
     // Evento: quando uma cerca é criada
     map.on(L.Draw.Event.CREATED, function (event) {
       const layer = event.layer;
@@ -134,4 +141,5 @@
   </script>
 </body>
 </html>
+
 
