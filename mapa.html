@@ -1,145 +1,124 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mapa com Cercas e Nomes</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mapa - Sistema de Monitoramento</title>
 
-  <!-- Leaflet e Leaflet Draw -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-draw/dist/leaflet.draw.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<link rel="stylesheet" href="styles.css">
 
-  <style>
-    html, body {
-      height: 100%;
-      margin: 0;
-      background: #b9d6f2;
-      font-family: Arial, sans-serif;
-    }
-    #map {
-      height: 100vh;
-      width: 100%;
-      background-color: #b9d6f2;
-    }
-
-    /* Corrige e estiliza os botões */
-    .leaflet-top.leaflet-left {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      margin-top: 10px;
-      margin-left: 10px;
-      gap: 6px;
-    }
-
-    .leaflet-draw-toolbar a {
-      background-color: #fff;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    }
-
-    .leaflet-draw-toolbar a:hover {
-      background-color: #f0f0f0;
-    }
-
-    /* Estilo para o rótulo da cerca */
-    .polygon-label {
-      background-color: rgba(255, 255, 255, 0.7);
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-size: 12px;
-      font-weight: bold;
-      color: #333;
-    }
-  </style>
 </head>
-
 <body>
-  <div id="map"></div>
 
-  <!-- Scripts -->
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script src="https://unpkg.com/leaflet-draw/dist/leaflet.draw.js"></script>
-
-  <script>
-    // Inicializa o mapa
-    const map = L.map('map').setView([-15.78, -47.93], 5);
-
-    // Camada base (azul mais claro)
-    L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '© OpenStreetMap contributors',
-    }).addTo(map);
-
-    // Grupo onde as cercas serão adicionadas
-    const drawnItems = new L.FeatureGroup();
-    map.addLayer(drawnItems);
-
-    // Controle de desenho
-    const drawControl = new L.Control.Draw({
-      draw: {
-        polygon: {
-          shapeOptions: {
-            color: '#ffcc00',
-            fillColor: '#fff300',
-            fillOpacity: 0.4
-          },
-          allowIntersection: false,
-          showArea: true
-        },
-        polyline: false,
-        circle: false,
-        rectangle: false,
-        marker: false,
-        circlemarker: false
-      },
-      edit: {
-        featureGroup: drawnItems
-      }
-    });
-    map.addControl(drawControl);
-
-    // Array para armazenar as cercas criadas
-    const cercas = [];
-    
 <div id="sidebar">
   <h2>Meus Paddocks</h2>
   <ul id="paddockList" class="paddock-list"></ul>
   <button onclick="ativarEdicaoCerca()">Criar Nova Cerca</button>
 </div>
 <div id="map"></div>
-    
-    // Evento: quando uma cerca é criada
-    map.on(L.Draw.Event.CREATED, function (event) {
-      const layer = event.layer;
 
-      // Pede o nome da cerca
-      const nomeCerca = prompt("Digite um nome para esta cerca:");
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+// Inicializa mapa
+var map = L.map('map').setView([-15.78, -47.93], 5);
+L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',{
+  maxZoom:19,
+  attribution:'© OpenStreetMap contributors'
+}).addTo(map);
 
-      if (nomeCerca && nomeCerca.trim() !== "") {
-        // Adiciona ao mapa
-        drawnItems.addLayer(layer);
+// Variáveis
+let modoEdicaoCerca = false;
+let pontosCerca = [];
+let cercaAtual = null;
+let paddocks = [];
 
-        // Salva os dados (nome + coordenadas)
-        const coordenadas = layer.getLatLngs()[0].map(coord => [coord.lat, coord.lng]);
-        cercas.push({ nome: nomeCerca, coordenadas });
+// Renderiza lista de paddocks
+function renderPaddocks(){
+  const list = document.getElementById('paddockList');
+  list.innerHTML = '';
+  paddocks.forEach(p => {
+    const li = document.createElement('li');
+    li.className = 'paddock-item';
+    li.innerHTML = `<span>${p.name}</span>
+      <div class="options">
+        <button class="view">Ver Animais</button>
+        <button class="edit">Editar</button>
+        <button class="delete">Apagar</button>
+      </div>`;
 
-        // Cria um rótulo com o nome da cerca
-        const centro = layer.getBounds().getCenter();
-        const label = L.divIcon({
-          className: 'polygon-label',
-          html: nomeCerca
-        });
-        L.marker(centro, { icon: label, interactive: false }).addTo(map);
+    li.addEventListener('click', e=>{
+      if(e.target.tagName==='BUTTON') return;
+      const opts = li.querySelector('.options');
+      opts.style.display = opts.style.display==='block'?'none':'block';
+    });
 
-        alert(`✅ Cerca "${nomeCerca}" criada com sucesso!`);
-        console.log("Cercas atuais:", cercas);
-      } else {
-        alert("⚠️ Cerca sem nome não foi salva.");
+    li.querySelector('.view').addEventListener('click', ()=> {
+      if(p.animals.length === 0) alert(`Não há animais no ${p.name}`);
+      else alert(`Animais no ${p.name}:\n- ${p.animals.join('\n- ')}`);
+    });
+
+    li.querySelector('.edit').addEventListener('click', ()=>{
+      const newName = prompt('Digite o novo nome do paddock:', p.name);
+      if(newName){ p.name = newName; renderPaddocks(); }
+    });
+
+    li.querySelector('.delete').addEventListener('click', ()=>{
+      if(confirm(`Apagar ${p.name}?`)){
+        if(p.polygon) map.removeLayer(p.polygon);
+        paddocks = paddocks.filter(pd => pd.id !== p.id);
+        renderPaddocks();
       }
     });
-  </script>
+
+    list.appendChild(li);
+  });
+}
+
+// Ativar edição de cerca
+function ativarEdicaoCerca(){
+  modoEdicaoCerca = true;
+  pontosCerca = [];
+  if(cercaAtual) map.removeLayer(cercaAtual);
+  alert("Clique no mapa para adicionar pontos. Duplo clique para finalizar.");
+}
+
+// Clique no mapa adiciona pontos
+map.on("click", function(e){
+  if(!modoEdicaoCerca) return;
+  pontosCerca.push([e.latlng.lat,e.latlng.lng]);
+  if(cercaAtual) map.removeLayer(cercaAtual);
+  cercaAtual = L.polygon(pontosCerca,{
+    color:"yellow", weight:4, fillColor:"rgba(255,255,0,0.2)", fillOpacity:0.3
+  }).addTo(map);
+});
+
+// Duplo clique finaliza cerca
+map.on("dblclick", function(){
+  if(modoEdicaoCerca && pontosCerca.length>2){
+    if(cercaAtual) map.removeLayer(cercaAtual);
+    cercaAtual = L.polygon(pontosCerca,{
+      color:"yellow", weight:4, fillColor:"rgba(255,255,0,0.3)", fillOpacity:0.4
+    }).addTo(map);
+
+    const nome = prompt("Digite o nome do paddock:");
+    if(nome){
+      const novo = { id: Date.now(), name: nome, animals: [], polygon: cercaAtual };
+      paddocks.push(novo);
+      renderPaddocks();
+    } else { map.removeLayer(cercaAtual); }
+
+    cercaAtual = null;
+    pontosCerca=[];
+    modoEdicaoCerca=false;
+  }
+});
+
+renderPaddocks();
+</script>
 </body>
 </html>
+
+
 
 
