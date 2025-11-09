@@ -23,7 +23,7 @@ function atualizarLocalizacaoAnimal(id, lat, lng) {
 // ======= SIMULAÇÃO DE SINAL GPS =======
 setInterval(() => {
   // Gera coordenadas simuladas perto de um ponto fixo
-const lat = -19.789 + (Math.random() - 0.5) * 0.01;
+const lat = -19.788 + (Math.random() - 0.5) * 0.01;
 const lng = -42.139 + (Math.random() - 0.5) * 0.01;
 
 
