@@ -3,239 +3,48 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mapa de Animais com Cercas</title>
+  <title>Sistema de Monitoramento - Fazenda</title>
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet-draw/dist/leaflet.draw.css" />
-
-  <style>
-    html, body {
-      height: 100%;
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #b9d6f2;
-      overflow: hidden;
-    }
-
-    #map {
-      height: 100vh;
-      width: 100%;
-      z-index: 1;
-    }
-
-    /* Painel lateral */
-    #painel {
-      position: absolute;
-      top: 15px;
-      left: 15px;
-      background: rgba(255, 255, 255, 0.97);
-      padding: 15px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      width: 270px;
-      z-index: 9999;
-    }
-
-    #painel h3 {
-      margin-top: 0;
-      text-align: center;
-      color: #333;
-    }
-
-    #painel label {
-      font-size: 14px;
-      font-weight: bold;
-      color: #444;
-    }
-
-    #painel input, #painel select, #painel button {
-      width: 100%;
-      margin-bottom: 8px;
-      padding: 6px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
-
-    #painel button {
-      background: #3a7bd5;
-      color: white;
-      border: none;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-
-    #painel button:hover {
-      background: #285b9f;
-    }
-
-    .polygon-label {
-      background-color: rgba(255, 255, 255, 0.8);
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-size: 12px;
-      font-weight: bold;
-      color: #333;
-    }
-  </style>
+  <link rel="stylesheet" href="css/styles.css" />
 </head>
-
 <body>
-  <div id="map"></div>
+  <div id="menu">
+    <h1>🐄 Sistema de Monitoramento</h1>
+    <button id="btnLogin">Login</button>
+    <button id="btnMapa">Abrir Mapa</button>
+    <button id="btnAnimais">Gerenciar Animais</button>
+  </div>
 
-  <div id="painel">
-    <h3>🐄 Gerenciar Animais</h3>
-    <label>Nome:</label>
-    <input type="text" id="nomeAnimal" placeholder="Ex: Vaca 01">
-    <label>Cerca (opcional):</label>
-    <select id="cercaSelect">
-      <option value="">Sem cerca</option>
-    </select>
-    <button id="btnAdd">Adicionar Animal</button>
-    <hr>
-    <label>Animais Cadastrados:</label>
-    <select id="animaisSelect"></select>
-    <button id="btnRemover">Remover Selecionado</button>
+  <div id="loginScreen" class="hidden">
+    <h2>Login da Fazenda</h2>
+    <input type="text" placeholder="Usuário" id="usuario" />
+    <input type="password" placeholder="Senha" id="senha" />
+    <button id="entrar">Entrar</button>
+  </div>
+
+  <div id="mapScreen" class="hidden">
+    <div id="map"></div>
+  </div>
+
+  <div id="animalScreen" class="hidden">
+    <h2>Cadastro de Animais</h2>
+    <input type="text" id="nomeAnimal" placeholder="Nome do Animal" />
+    <button id="addAnimal">Adicionar</button>
+    <ul id="listaAnimais"></ul>
+    <button id="voltarMenu">Voltar</button>
   </div>
 
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet-draw/dist/leaflet.draw.js"></script>
 
-  <script>
-    // === Inicializa o mapa ===
-    const map = L.map('map').setView([-19.788, -42.139], 13);
-
-    // Camada base
-    L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '© OpenStreetMap contributors',
-    }).addTo(map);
-
-    // === Controle de cercas ===
-    const drawnItems = new L.FeatureGroup();
-    map.addLayer(drawnItems);
-    const cercas = [];
-
-    const drawControl = new L.Control.Draw({
-      draw: {
-        polygon: {
-          shapeOptions: { color: '#ffcc00', fillColor: '#fff300', fillOpacity: 0.4 },
-          allowIntersection: false,
-          showArea: true
-        },
-        polyline: false, rectangle: false, circle: false, marker: false, circlemarker: false
-      },
-      edit: { featureGroup: drawnItems }
-    });
-    map.addControl(drawControl);
-
-    map.on(L.Draw.Event.CREATED, function (event) {
-      const layer = event.layer;
-      const nomeCerca = prompt("Digite um nome para esta cerca:");
-      if (nomeCerca) {
-        drawnItems.addLayer(layer);
-        const coordenadas = layer.getLatLngs()[0].map(p => [p.lat, p.lng]);
-        cercas.push({ nome: nomeCerca, coordenadas, layer });
-        atualizarListaCercas();
-
-        const centro = layer.getBounds().getCenter();
-        const label = L.divIcon({ className: 'polygon-label', html: nomeCerca });
-        L.marker(centro, { icon: label, interactive: false }).addTo(map);
-      }
-    });
-
-    function atualizarListaCercas() {
-      const select = document.getElementById("cercaSelect");
-      select.innerHTML = '<option value="">Sem cerca</option>';
-      cercas.forEach((c, i) => {
-        const opt = document.createElement("option");
-        opt.value = i;
-        opt.textContent = c.nome;
-        select.appendChild(opt);
-      });
-    }
-
-    // === Controle de animais ===
-    const animais = [];
-    const animalIcon = L.icon({
-      iconUrl: 'https://cdn-icons-png.flaticon.com/512/1998/1998611.png', // 🐄 Ícone de vaca
-      iconSize: [45, 45],
-      iconAnchor: [22, 22]
-    });
-
-    function adicionarAnimal() {
-      const nome = document.getElementById("nomeAnimal").value.trim();
-      const cercaIndex = document.getElementById("cercaSelect").value;
-      if (!nome) return alert("Digite um nome para o animal!");
-
-      // Posição inicial
-      let lat = -19.788 + (Math.random() - 0.5) * 0.02;
-      let lng = -42.139 + (Math.random() - 0.5) * 0.02;
-
-      const marker = L.marker([lat, lng], { icon: animalIcon })
-        .addTo(map)
-        .bindPopup(`🐄 ${nome}<br>Cerca: ${cercaIndex ? cercas[cercaIndex].nome : "Nenhuma"}`);
-
-      const animal = { nome, marker, lat, lng, cercaIndex };
-      animais.push(animal);
-      atualizarListaAnimais();
-      document.getElementById("nomeAnimal").value = "";
-    }
-
-    function atualizarListaAnimais() {
-      const select = document.getElementById("animaisSelect");
-      select.innerHTML = '';
-      animais.forEach((a, i) => {
-        const opt = document.createElement("option");
-        opt.value = i;
-        opt.textContent = a.nome;
-        select.appendChild(opt);
-      });
-    }
-
-    function removerAnimal() {
-      const select = document.getElementById("animaisSelect");
-      const index = select.value;
-      if (index === "") return alert("Selecione um animal!");
-      map.removeLayer(animais[index].marker);
-      animais.splice(index, 1);
-      atualizarListaAnimais();
-    }
-
-    document.getElementById("btnAdd").addEventListener("click", adicionarAnimal);
-    document.getElementById("btnRemover").addEventListener("click", removerAnimal);
-
-    // === Movimento automático dos animais ===
-    function pontoDentroDaCerca(lat, lng, cerca) {
-      const poly = L.polygon(cerca.coordenadas);
-      return leafletPip.pointInLayer([lng, lat], poly).length > 0;
-    }
-
-    function moverAnimais() {
-      animais.forEach(a => {
-        let deltaLat = (Math.random() - 0.5) * 0.0005;
-        let deltaLng = (Math.random() - 0.5) * 0.0005;
-        let novoLat = a.lat + deltaLat;
-        let novoLng = a.lng + deltaLng;
-
-        // Mantém dentro da cerca, se houver
-        if (a.cercaIndex !== "" && cercas[a.cercaIndex]) {
-          const dentro = L.polygon(cercas[a.cercaIndex].coordenadas)
-                         .getBounds()
-                         .contains([novoLat, novoLng]);
-          if (!dentro) return; // não move para fora
-        }
-
-        a.lat = novoLat;
-        a.lng = novoLng;
-        a.marker.setLatLng([a.lat, a.lng]);
-      });
-    }
-
-    // Atualiza a cada 2 segundos
-    setInterval(moverAnimais, 2000);
-  </script>
+  <script src="js/mapa.js"></script>
+  <script src="js/gps.js"></script>
+  <script src="js/app.js"></script>
 </body>
 </html>
+
 
 
 
