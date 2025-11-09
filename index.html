@@ -14,45 +14,62 @@
       margin: 0;
       font-family: Arial, sans-serif;
       background: #b9d6f2;
+      overflow: hidden;
     }
 
     #map {
       height: 100vh;
       width: 100%;
+      z-index: 1;
     }
 
     /* Painel lateral */
     #painel {
       position: absolute;
-      top: 20px;
-      left: 20px;
-      background: rgba(255, 255, 255, 0.95);
+      top: 15px;
+      left: 15px;
+      background: rgba(255, 255, 255, 0.97);
       padding: 15px;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-      width: 250px;
-      z-index: 1000;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      width: 270px;
+      z-index: 9999;
     }
 
     #painel h3 {
       margin-top: 0;
       text-align: center;
+      color: #333;
     }
 
     #painel label {
       font-size: 14px;
+      font-weight: bold;
+      color: #444;
     }
 
     #painel input, #painel select, #painel button {
       width: 100%;
       margin-bottom: 8px;
-      padding: 5px;
+      padding: 6px;
       border-radius: 6px;
       border: 1px solid #ccc;
     }
 
+    #painel button {
+      background: #3a7bd5;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    #painel button:hover {
+      background: #285b9f;
+    }
+
     .polygon-label {
-      background-color: rgba(255, 255, 255, 0.7);
+      background-color: rgba(255, 255, 255, 0.8);
       padding: 2px 6px;
       border-radius: 4px;
       font-size: 12px;
@@ -80,113 +97,145 @@
     <button id="btnRemover">Remover Selecionado</button>
   </div>
 
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<script src="https://unpkg.com/leaflet-draw/dist/leaflet.draw.js"></script>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-draw/dist/leaflet.draw.js"></script>
 
-<script>
-  // === Inicializa o mapa ===
-  const map = L.map('map').setView([-19.788, -42.139], 13);
+  <script>
+    // === Inicializa o mapa ===
+    const map = L.map('map').setView([-19.788, -42.139], 13);
 
-  // Camada base
-  L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '© OpenStreetMap contributors',
-  }).addTo(map);
+    // Camada base
+    L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '© OpenStreetMap contributors',
+    }).addTo(map);
 
-  // === Controle de cercas ===
-  const drawnItems = new L.FeatureGroup();
-  map.addLayer(drawnItems);
-  const cercas = [];
+    // === Controle de cercas ===
+    const drawnItems = new L.FeatureGroup();
+    map.addLayer(drawnItems);
+    const cercas = [];
 
-  const drawControl = new L.Control.Draw({
-    draw: {
-      polygon: {
-        shapeOptions: { color: '#ffcc00', fillColor: '#fff300', fillOpacity: 0.4 },
-        allowIntersection: false,
-        showArea: true
+    const drawControl = new L.Control.Draw({
+      draw: {
+        polygon: {
+          shapeOptions: { color: '#ffcc00', fillColor: '#fff300', fillOpacity: 0.4 },
+          allowIntersection: false,
+          showArea: true
+        },
+        polyline: false, rectangle: false, circle: false, marker: false, circlemarker: false
       },
-      polyline: false, rectangle: false, circle: false, marker: false, circlemarker: false
-    },
-    edit: { featureGroup: drawnItems }
-  });
-  map.addControl(drawControl);
+      edit: { featureGroup: drawnItems }
+    });
+    map.addControl(drawControl);
 
-  map.on(L.Draw.Event.CREATED, function (event) {
-    const layer = event.layer;
-    const nomeCerca = prompt("Digite um nome para esta cerca:");
-    if (nomeCerca) {
-      drawnItems.addLayer(layer);
-      const coordenadas = layer.getLatLngs()[0].map(p => [p.lat, p.lng]);
-      cercas.push({ nome: nomeCerca, coordenadas, layer });
-      atualizarListaCercas();
+    map.on(L.Draw.Event.CREATED, function (event) {
+      const layer = event.layer;
+      const nomeCerca = prompt("Digite um nome para esta cerca:");
+      if (nomeCerca) {
+        drawnItems.addLayer(layer);
+        const coordenadas = layer.getLatLngs()[0].map(p => [p.lat, p.lng]);
+        cercas.push({ nome: nomeCerca, coordenadas, layer });
+        atualizarListaCercas();
 
-      const centro = layer.getBounds().getCenter();
-      const label = L.divIcon({ className: 'polygon-label', html: nomeCerca });
-      L.marker(centro, { icon: label, interactive: false }).addTo(map);
+        const centro = layer.getBounds().getCenter();
+        const label = L.divIcon({ className: 'polygon-label', html: nomeCerca });
+        L.marker(centro, { icon: label, interactive: false }).addTo(map);
+      }
+    });
+
+    function atualizarListaCercas() {
+      const select = document.getElementById("cercaSelect");
+      select.innerHTML = '<option value="">Sem cerca</option>';
+      cercas.forEach((c, i) => {
+        const opt = document.createElement("option");
+        opt.value = i;
+        opt.textContent = c.nome;
+        select.appendChild(opt);
+      });
     }
-  });
 
-  function atualizarListaCercas() {
-    const select = document.getElementById("cercaSelect");
-    select.innerHTML = '<option value="">Sem cerca</option>';
-    cercas.forEach((c, i) => {
-      const opt = document.createElement("option");
-      opt.value = i;
-      opt.textContent = c.nome;
-      select.appendChild(opt);
+    // === Controle de animais ===
+    const animais = [];
+    const animalIcon = L.icon({
+      iconUrl: 'https://cdn-icons-png.flaticon.com/512/1998/1998611.png', // 🐄 Ícone de vaca
+      iconSize: [45, 45],
+      iconAnchor: [22, 22]
     });
-  }
 
-  // === Controle de animais ===
-  const animais = [];
-  const animalIcon = L.icon({
-    iconUrl: 'https://cdn-icons-png.flaticon.com/512/616/616408.png',
-    iconSize: [40, 40],
-    iconAnchor: [20, 20]
-  });
+    function adicionarAnimal() {
+      const nome = document.getElementById("nomeAnimal").value.trim();
+      const cercaIndex = document.getElementById("cercaSelect").value;
+      if (!nome) return alert("Digite um nome para o animal!");
 
-  function adicionarAnimal() {
-    const nome = document.getElementById("nomeAnimal").value.trim();
-    const cercaIndex = document.getElementById("cercaSelect").value;
-    if (!nome) return alert("Digite um nome para o animal!");
+      // Posição inicial
+      let lat = -19.788 + (Math.random() - 0.5) * 0.02;
+      let lng = -42.139 + (Math.random() - 0.5) * 0.02;
 
-    // Localização inicial aleatória (em torno de Caratinga)
-    let lat = -19.788 + (Math.random() - 0.5) * 0.02;
-    let lng = -42.139 + (Math.random() - 0.5) * 0.02;
+      const marker = L.marker([lat, lng], { icon: animalIcon })
+        .addTo(map)
+        .bindPopup(`🐄 ${nome}<br>Cerca: ${cercaIndex ? cercas[cercaIndex].nome : "Nenhuma"}`);
 
-    const marker = L.marker([lat, lng], { icon: animalIcon })
-      .addTo(map)
-      .bindPopup(`🐄 ${nome}<br>Cerca: ${cercaIndex ? cercas[cercaIndex].nome : "Nenhuma"}`);
+      const animal = { nome, marker, lat, lng, cercaIndex };
+      animais.push(animal);
+      atualizarListaAnimais();
+      document.getElementById("nomeAnimal").value = "";
+    }
 
-    const animal = { nome, marker, lat, lng, cercaIndex };
-    animais.push(animal);
-    atualizarListaAnimais();
-    document.getElementById("nomeAnimal").value = "";
-  }
+    function atualizarListaAnimais() {
+      const select = document.getElementById("animaisSelect");
+      select.innerHTML = '';
+      animais.forEach((a, i) => {
+        const opt = document.createElement("option");
+        opt.value = i;
+        opt.textContent = a.nome;
+        select.appendChild(opt);
+      });
+    }
 
-  function atualizarListaAnimais() {
-    const select = document.getElementById("animaisSelect");
-    select.innerHTML = '';
-    animais.forEach((a, i) => {
-      const opt = document.createElement("option");
-      opt.value = i;
-      opt.textContent = a.nome;
-      select.appendChild(opt);
-    });
-  }
+    function removerAnimal() {
+      const select = document.getElementById("animaisSelect");
+      const index = select.value;
+      if (index === "") return alert("Selecione um animal!");
+      map.removeLayer(animais[index].marker);
+      animais.splice(index, 1);
+      atualizarListaAnimais();
+    }
 
-  function removerAnimal() {
-    const select = document.getElementById("animaisSelect");
-    const index = select.value;
-    if (index === "") return alert("Selecione um animal!");
-    map.removeLayer(animais[index].marker);
-    animais.splice(index, 1);
-    atualizarListaAnimais();
-  }
+    document.getElementById("btnAdd").addEventListener("click", adicionarAnimal);
+    document.getElementById("btnRemover").addEventListener("click", removerAnimal);
 
-  document.getElementById("btnAdd").addEventListener("click", adicionarAnimal);
-  document.getElementById("btnRemover").addEventListener("click", removerAnimal);
-</script>
+    // === Movimento automático dos animais ===
+    function pontoDentroDaCerca(lat, lng, cerca) {
+      const poly = L.polygon(cerca.coordenadas);
+      return leafletPip.pointInLayer([lng, lat], poly).length > 0;
+    }
+
+    function moverAnimais() {
+      animais.forEach(a => {
+        let deltaLat = (Math.random() - 0.5) * 0.0005;
+        let deltaLng = (Math.random() - 0.5) * 0.0005;
+        let novoLat = a.lat + deltaLat;
+        let novoLng = a.lng + deltaLng;
+
+        // Mantém dentro da cerca, se houver
+        if (a.cercaIndex !== "" && cercas[a.cercaIndex]) {
+          const dentro = L.polygon(cercas[a.cercaIndex].coordenadas)
+                         .getBounds()
+                         .contains([novoLat, novoLng]);
+          if (!dentro) return; // não move para fora
+        }
+
+        a.lat = novoLat;
+        a.lng = novoLng;
+        a.marker.setLatLng([a.lat, a.lng]);
+      });
+    }
+
+    // Atualiza a cada 2 segundos
+    setInterval(moverAnimais, 2000);
+  </script>
+</body>
+</html>
 
 
 
