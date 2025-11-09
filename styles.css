@@ -1,15 +1,64 @@
-#overlay {
-  position: absolute;
-  top: 0;
-  left: 200px;
-  left: 200px; /* deixa espaço para o menu lateral */
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 120, 200, 0.2);
-  backdrop-filter: blur(2px);
-  pointer-events: none;
-  background: rgba(0, 50, 100, 0.6); /* tom azul mais forte */
-  backdrop-filter: brightness(0.6);  /* escurece um pouco */
-  pointer-events: none; /* deixa o clique passar para o mapa */
-  z-index: 500;
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: Arial, sans-serif;
+  background: #b9d6f2;
+}
+
+/* Telas */
+.hidden {
+  display: none;
+}
+
+/* Menu inicial */
+#menu {
+  text-align: center;
+  padding-top: 80px;
+}
+
+#menu button {
+  display: block;
+  margin: 10px auto;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  background: #0077cc;
+  color: white;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+#menu button:hover {
+  background: #005fa3;
+}
+
+/* Login */
+#loginScreen {
+  text-align: center;
+  padding-top: 100px;
+}
+
+#loginScreen input {
+  display: block;
+  margin: 10px auto;
+  padding: 8px;
+  width: 200px;
+}
+
+/* Mapa */
+#map {
+  height: 100vh;
+  width: 100%;
+}
+
+/* Animais */
+#animalScreen {
+  text-align: center;
+  padding-top: 50px;
+}
+
+#animalScreen ul {
+  list-style: none;
+  padding: 0;
 }
