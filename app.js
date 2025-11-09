@@ -1,71 +1,46 @@
-// Inicializa o mapa
-var map = L.map('map').setView([-15.7801, -47.9292], 4);
+// Controle das telas
+const loginScreen = document.getElementById('loginScreen');
+const menu = document.getElementById('menu');
+const mapScreen = document.getElementById('mapScreen');
+const animalScreen = document.getElementById('animalScreen');
 
-// Adiciona o mapa base
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '&copy; OpenStreetMap contributors'
-}).addTo(map);
+document.getElementById('btnLogin').onclick = () => {
+  menu.classList.add('hidden');
+  loginScreen.classList.remove('hidden');
+};
 
-// Adiciona o vidro azul (overlay)
-var overlay = document.createElement("div");
-overlay.id = "overlay";
-document.body.appendChild(overlay);
+document.getElementById('btnMapa').onclick = () => {
+  menu.classList.add('hidden');
+  mapScreen.classList.remove('hidden');
+};
 
-// Variáveis de controle
-let modoEdicaoCerca = false;
-let pontosCerca = [];
-let cercaAtual = null;
+document.getElementById('btnAnimais').onclick = () => {
+  menu.classList.add('hidden');
+  animalScreen.classList.remove('hidden');
+};
 
-// Função para alternar modo de edição
-function ativarEdicaoCerca() {
-  modoEdicaoCerca = !modoEdicaoCerca;
-  pontosCerca = [];
+document.getElementById('voltarMenu').onclick = () => {
+  animalScreen.classList.add('hidden');
+  menu.classList.remove('hidden');
+};
 
-  if (cercaAtual) {
-    map.removeLayer(cercaAtual);
-    cercaAtual = null;
-  }
+document.getElementById('entrar').onclick = () => {
+  loginScreen.classList.add('hidden');
+  menu.classList.remove('hidden');
+};
 
-  alert(
-    modoEdicaoCerca
-      ? "Modo de edição de cerca ATIVADO\nClique para adicionar pontos.\nDuplo clique para finalizar."
-      : "Modo de edição de cerca DESATIVADO"
-  );
-}
+// Cadastro de animais
+document.getElementById('addAnimal').onclick = () => {
+  const nome = document.getElementById('nomeAnimal').value.trim();
+  if (!nome) return alert("Digite o nome do animal!");
+  adicionarAnimal(nome);
 
-// Captura cliques no mapa para criar pontos
-map.on("click", function (e) {
-  if (!modoEdicaoCerca) return;
+  const li = document.createElement('li');
+  li.textContent = nome;
+  document.getElementById('listaAnimais').appendChild(li);
+  document.getElementById('nomeAnimal').value = "";
+};
 
-  pontosCerca.push([e.latlng.lat, e.latlng.lng]);
-
-  // Se já tiver um desenho, remove o anterior
-  if (cercaAtual) map.removeLayer(cercaAtual);
-
-  // Mostra o polígono parcial enquanto adiciona pontos
-  cercaAtual = L.polygon(pontosCerca, {
-    color: "yellow",
-    weight: 4,
-    fillColor: "rgba(255,255,0,0.2)",
-    fillOpacity: 0.3,
-  }).addTo(map);
-});
-
-// Duplo clique finaliza a cerca
-map.on("dblclick", function () {
-  if (modoEdicaoCerca && pontosCerca.length > 2) {
-    if (cercaAtual) map.removeLayer(cercaAtual);
-    cercaAtual = L.polygon(pontosCerca, {
-      color: "yellow",
-      weight: 4,
-      fillColor: "rgba(255,255,0,0.3)",
-      fillOpacity: 0.4,
-    }).addTo(map);
-    modoEdicaoCerca = false;
-    pontosCerca = [];
-    alert("Cerca criada e exibida no mapa!");
-  }
-});
 
 
 
