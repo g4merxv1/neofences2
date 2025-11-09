@@ -83,106 +83,113 @@
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet-draw/dist/leaflet.draw.js"></script>
 
-  <script>
-    // === Inicializa o mapa ===
-    const map = L.map('map').setView([-19.788, -42.139], 13);
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-draw/dist/leaflet.draw.js"></script>
 
-    // Camada base
-    L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '© OpenStreetMap contributors',
-    }).addTo(map);
+<script>
+  // === Inicializa o mapa ===
+  const map = L.map('map').setView([-19.788, -42.139], 13);
 
-    // === Controle de cercas ===
-    const drawnItems = new L.FeatureGroup();
-    map.addLayer(drawnItems);
-    const cercas = [];
+  // Camada base
+  L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '© OpenStreetMap contributors',
+  }).addTo(map);
 
-    const drawControl = new L.Control.Draw({
-      draw: {
-        polygon: {
-          shapeOptions: { color: '#ffcc00', fillColor: '#fff300', fillOpacity: 0.4 },
-          allowIntersection: false,
-          showArea: true
-        },
-        polyline: false, rectangle: false, circle: false, marker: false, circlemarker: false
+  // === Controle de cercas ===
+  const drawnItems = new L.FeatureGroup();
+  map.addLayer(drawnItems);
+  const cercas = [];
+
+  const drawControl = new L.Control.Draw({
+    draw: {
+      polygon: {
+        shapeOptions: { color: '#ffcc00', fillColor: '#fff300', fillOpacity: 0.4 },
+        allowIntersection: false,
+        showArea: true
       },
-      edit: { featureGroup: drawnItems }
-    });
-    map.addControl(drawControl);
+      polyline: false, rectangle: false, circle: false, marker: false, circlemarker: false
+    },
+    edit: { featureGroup: drawnItems }
+  });
+  map.addControl(drawControl);
 
-    map.on(L.Draw.Event.CREATED, function (event) {
-      const layer = event.layer;
-      const nomeCerca = prompt("Digite um nome para esta cerca:");
-      if (nomeCerca) {
-        drawnItems.addLayer(layer);
-        const coordenadas = layer.getLatLngs()[0].map(p => [p.lat, p.lng]);
-        cercas.push({ nome: nomeCerca, coordenadas, layer });
-        atualizarListaCercas();
+  map.on(L.Draw.Event.CREATED, function (event) {
+    const layer = event.layer;
+    const nomeCerca = prompt("Digite um nome para esta cerca:");
+    if (nomeCerca) {
+      drawnItems.addLayer(layer);
+      const coordenadas = layer.getLatLngs()[0].map(p => [p.lat, p.lng]);
+      cercas.push({ nome: nomeCerca, coordenadas, layer });
+      atualizarListaCercas();
 
-        const centro = layer.getBounds().getCenter();
-        const label = L.divIcon({ className: 'polygon-label', html: nomeCerca });
-        L.marker(centro, { icon: label, interactive: false }).addTo(map);
-      }
-    });
-
-    function atualizarListaCercas() {
-      const select = document.getElementById("cercaSelect");
-      select.innerHTML = '<option value="">Sem cerca</option>';
-      cercas.forEach((c, i) => {
-        const opt = document.createElement("option");
-        opt.value = i;
-        opt.textContent = c.nome;
-        select.appendChild(opt);
-      });
+      const centro = layer.getBounds().getCenter();
+      const label = L.divIcon({ className: 'polygon-label', html: nomeCerca });
+      L.marker(centro, { icon: label, interactive: false }).addTo(map);
     }
+  });
 
-    // === Controle de animais ===
-    const animais = [];
-    const animalIcon = L.icon({
-      iconUrl: 'https://cdn-icons-png.flaticon.com/512/616/616408.png',
-      iconSize: [40, 40],
-      iconAnchor: [20, 20]
+  function atualizarListaCercas() {
+    const select = document.getElementById("cercaSelect");
+    select.innerHTML = '<option value="">Sem cerca</option>';
+    cercas.forEach((c, i) => {
+      const opt = document.createElement("option");
+      opt.value = i;
+      opt.textContent = c.nome;
+      select.appendChild(opt);
     });
+  }
 
-    function adicionarAnimal() {
-      const nome = document.getElementById("nomeAnimal").value.trim();
-      const cercaIndex = document.getElementById("cercaSelect").value;
-      if (!nome) return alert("Digite um nome para o animal!");
+  // === Controle de animais ===
+  const animais = [];
+  const animalIcon = L.icon({
+    iconUrl: 'https://cdn-icons-png.flaticon.com/512/616/616408.png',
+    iconSize: [40, 40],
+    iconAnchor: [20, 20]
+  });
 
-      // Localização inicial aleatória (em Caratinga)
-      let lat = -19.788 + (Math.random() - 0.5) * 0.02;
-      let lng = -42.139 + (Math.random() - 0.5) * 0.02;
+  function adicionarAnimal() {
+    const nome = document.getElementById("nomeAnimal").value.trim();
+    const cercaIndex = document.getElementById("cercaSelect").value;
+    if (!nome) return alert("Digite um nome para o animal!");
 
-      const marker = L.marker([lat, lng], { icon: animalIcon })
-        .addTo(map)
-        .bindPopup(`🐄 ${nome}<br>Cerca: ${cercaIndex ? cercas[cercaIndex].nome : "Nenhuma"}`);
+    // Localização inicial aleatória (em torno de Caratinga)
+    let lat = -19.788 + (Math.random() - 0.5) * 0.02;
+    let lng = -42.139 + (Math.random() - 0.5) * 0.02;
 
-      const animal = { nome, marker, lat, lng, cercaIndex };
-      animais.push(animal);
-      atualizarListaAnimais();
-    }
+    const marker = L.marker([lat, lng], { icon: animalIcon })
+      .addTo(map)
+      .bindPopup(`🐄 ${nome}<br>Cerca: ${cercaIndex ? cercas[cercaIndex].nome : "Nenhuma"}`);
 
-    function atualizarListaAnimais() {
-      const select = document.getElementById("animaisSelect");
-      select.innerHTML = '';
-      animais.forEach((a, i) => {
-        const opt = document.createElement("option");
-        opt.value = i;
-        opt.textContent = a.nome;
-        select.appendChild(opt);
-      });
-    }
+    const animal = { nome, marker, lat, lng, cercaIndex };
+    animais.push(animal);
+    atualizarListaAnimais();
+    document.getElementById("nomeAnimal").value = "";
+  }
 
-    function removerAnimal() {
-      const select = document.getElementById("animaisSelect");
-      const index = select.value;
-      if (index === "") return alert("Selecione um animal!");
-      map.removeLayer(animais[index].marker);
-      animais
+  function atualizarListaAnimais() {
+    const select = document.getElementById("animaisSelect");
+    select.innerHTML = '';
+    animais.forEach((a, i) => {
+      const opt = document.createElement("option");
+      opt.value = i;
+      opt.textContent = a.nome;
+      select.appendChild(opt);
+    });
+  }
 
+  function removerAnimal() {
+    const select = document.getElementById("animaisSelect");
+    const index = select.value;
+    if (index === "") return alert("Selecione um animal!");
+    map.removeLayer(animais[index].marker);
+    animais.splice(index, 1);
+    atualizarListaAnimais();
+  }
 
-
+  document.getElementById("btnAdd").addEventListener("click", adicionarAnimal);
+  document.getElementById("btnRemover").addEventListener("click", removerAnimal);
+</script>
 
 
 
